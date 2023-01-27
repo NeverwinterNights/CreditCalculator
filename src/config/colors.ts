@@ -5,15 +5,13 @@
 //     white: string,
 // }
 
+export default {
+  primary: '#4361ee',
+  secondary: '#3f37c9',
+  accent: '#4895ef',
+  danger: '#f72585',
+  success: '#4cc9f0',
+  grey: '#adb5bd',
+  white: '#ffffff',
+};
 
-
-export default  {
-    primary: "#fc5c65",
-    secondary: "#4ecdc4",
-    black:  "#000",
-    white: "#fff",
-    medium: "#6e6969",
-    dark: "#0c0c0c",
-    light: "#f8f4f4",
-    danger: "#ff5252",
-}

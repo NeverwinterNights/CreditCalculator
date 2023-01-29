@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {
   StyleProp,
   StyleSheet,
@@ -50,10 +51,6 @@ export const AppInput = ({
   // typeChangeHandler,
   ...restProps
 }: AppInputPropsType & TextInputProps) => {
-  // let a = '555555555555555';
-  // console.log('value', a.replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
-  console.log(text);
-
   return (
     <View style={{flexDirection: 'row', alignItems: 'center'}}>
       {label && (
@@ -87,7 +84,9 @@ export const AppInput = ({
           onBlur={onBlur}
           placeholderTextColor={colors.grey}
           onChangeText={setText ? setText : onChange}
-          value={text}
+          value={text
+            ?.replace(/[^\-0-9]/g, '')
+            .replace(/\B(?=(?:\d{3})+(?!\d))/g, ' ')}
           style={[styles.text, style]}
           {...restProps}
         />

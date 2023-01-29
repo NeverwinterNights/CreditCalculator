@@ -14,4 +14,3 @@ export default {
   grey: '#adb5bd',
   white: '#ffffff',
 };
-

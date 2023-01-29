@@ -32,7 +32,21 @@ export const Main = ({}: MainPropsType) => {
     });
   };
 
-  console.log('value', inputData);
+  // const months = +mainData.range * 12;
+  let months = 0;
+  if (mainData.range) {
+    months = +mainData.range * 12;
+  }
+  let sum = 0;
+  if (mainData.amount) {
+    sum = +mainData.amount.replace(/[^\-0-9]/g, '');
+  }
+  const paymentsArray = new Array(months).fill(Math.round(sum / months));
+  console.log('months', months, typeof months);
+  console.log('sum', sum, typeof sum);
+  console.log('paymentsArray', paymentsArray, typeof paymentsArray);
+
+  // console.log('mainData.amount', +mainData.amount, typeof +mainData.amount);
 
   return (
     <Screen>
@@ -45,6 +59,7 @@ export const Main = ({}: MainPropsType) => {
           numeric
           text={inputData.amount}
           setText={value => inputStateHandler('amount', value)}
+          style={{textAlign: 'center'}}
         />
         <AppInput
           label="Введите процентную ставку"
@@ -54,6 +69,7 @@ export const Main = ({}: MainPropsType) => {
           numeric
           text={inputData.rate}
           setText={value => inputStateHandler('rate', value)}
+          style={{textAlign: 'center'}}
         />
         <AppInput
           label="Введите срок кредита"
@@ -63,47 +79,51 @@ export const Main = ({}: MainPropsType) => {
           numeric
           text={inputData.range}
           setText={value => inputStateHandler('range', value)}
+          style={{textAlign: 'center'}}
         />
 
-        <View style={{alignItems: 'center'}}>
+        <View
+          style={{
+            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+          }}>
           <CustomButton
             children={'Ввести данные'}
             style={{width: 170}}
             labelStyle={{fontSize: 12}}
             onPress={dataInputsChandler}
           />
+          <View style={{alignItems: 'center'}}>
+            <CustomButton
+              color="danger"
+              children={'Очистить'}
+              style={{width: 170}}
+              labelStyle={{fontSize: 12}}
+              onPress={resetButtonChandler}
+            />
+          </View>
         </View>
+        <View style={{flexDirection: 'row'}}>
+          <View style={styles.amount}>
+            <Text style={{marginRight: 10}}>Сумма</Text>
+            <Text style={{fontWeight: 'bold'}}>
+              {mainData.amount
+                ?.replace(/[^\-0-9]/g, '')
+                .replace(/\B(?=(?:\d{3})+(?!\d))/g, ' ')}
+            </Text>
+          </View>
 
-        <View style={styles.amount}>
-          <Text style={{marginRight: 10}}>Запрашиваемая сумма</Text>
-          <Text style={{fontWeight: 'bold', fontSize: 20}}>
-            {mainData.amount}
-          </Text>
-          <Text style={{marginLeft: 10}}>тысяч евро</Text>
-        </View>
+          <View style={[styles.amount, {justifyContent: 'center'}]}>
+            <Text style={{marginRight: 10}}>Ставка</Text>
+            <Text style={{fontWeight: 'bold'}}>{mainData.rate}</Text>
+            <Text style={{marginLeft: 10}}>%</Text>
+          </View>
 
-        <View style={styles.amount}>
-          <Text style={{marginRight: 10}}>Процентная ставка</Text>
-          <Text style={{fontWeight: 'bold', fontSize: 20}}>
-            {mainData.rate}
-          </Text>
-          <Text style={{marginLeft: 10}}>%</Text>
-        </View>
-
-        <View style={styles.amount}>
-          <Text style={{marginRight: 10}}>Срок кредита</Text>
-          <Text style={{fontWeight: 'bold', fontSize: 20}}>
-            {mainData.range}
-          </Text>
-          <Text style={{marginLeft: 10}}>лет</Text>
-        </View>
-        <View style={{alignItems: 'center'}}>
-          <CustomButton
-            children={'Очистить'}
-            style={{width: 170}}
-            labelStyle={{fontSize: 12}}
-            onPress={resetButtonChandler}
-          />
+          <View style={[styles.amount, {justifyContent: 'center'}]}>
+            <Text style={{marginRight: 10}}>Срок</Text>
+            <Text style={{fontWeight: 'bold'}}>{mainData.range}</Text>
+          </View>
         </View>
       </View>
     </Screen>
@@ -112,10 +132,10 @@ export const Main = ({}: MainPropsType) => {
 
 const styles = StyleSheet.create({
   amount: {
+    flex: 1,
     flexDirection: 'row',
     height: 50,
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 45,
+    justifyContent: 'flex-start',
   },
 });

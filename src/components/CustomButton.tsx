@@ -35,9 +35,9 @@ export const CustomButton = ({
       activeOpacity={0.6}
       onPress={onPress}
       style={[
+        {backgroundColor: disable ? colors.grey : colors[color]},
         styles.button,
         style,
-        {backgroundColor: disable ? colors.grey : colors[color]},
       ]}>
       <Text style={[styles.text, labelStyle]}>
         {loading ? <ActivityIndicator /> : children}

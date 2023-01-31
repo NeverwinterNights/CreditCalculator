@@ -1,8 +1,12 @@
 import React from 'react';
-import {Main} from './src/screens/Main';
+// import {Main} from './src/screens/Main';
+import {Installment} from './src/screens/Installment';
 
 const App = () => {
-  return <Main />;
+  return (
+    // <Main />;
+    <Installment />
+  );
 };
 
 export default App;

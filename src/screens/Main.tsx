@@ -1,8 +1,11 @@
 import React, {useState} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Switch, Text, View} from 'react-native';
 import {Screen} from '../components/Screen';
 import {CustomButton} from '../components/CustomButton';
 import {AppInput} from '../components/AppTextInput';
+// import {countMonths, monthsPayment} from '../utils/utils';
+import colors from '../config/colors';
+// import {getSchedule} from '../utils/utils';
 
 type dataMain = {
   amount: string;
@@ -14,6 +17,7 @@ type MainPropsType = {};
 export const Main = ({}: MainPropsType) => {
   const [mainData, setMainData] = useState<dataMain>({} as dataMain);
   const [inputData, setInputData] = useState<dataMain>({} as dataMain);
+  const [differentiated, setDifferentiated] = useState(false);
 
   const dataInputsChandler = () => {
     setMainData(inputData);
@@ -31,26 +35,15 @@ export const Main = ({}: MainPropsType) => {
       [key]: value,
     });
   };
+  const toggleSwitch = () => setDifferentiated(previousState => !previousState);
 
-  // const months = +mainData.range * 12;
-  let months = 0;
-  if (mainData.range) {
-    months = +mainData.range * 12;
-  }
-  let sum = 0;
-  if (mainData.amount) {
-    sum = +mainData.amount.replace(/[^\-0-9]/g, '');
-  }
-  const paymentsArray = new Array(months).fill(Math.round(sum / months));
-  console.log('months', months, typeof months);
-  console.log('sum', sum, typeof sum);
-  console.log('paymentsArray', paymentsArray, typeof paymentsArray);
-
-  // console.log('mainData.amount', +mainData.amount, typeof +mainData.amount);
+  // const paymentsArray = new Array(countMonths(+mainData.range)).fill(
+  //   monthsPayment(mainData.amount, countMonths(+mainData.range)),
+  // );
 
   return (
     <Screen>
-      <View style={{marginHorizontal: 10}}>
+      <View style={{marginHorizontal: 13}}>
         <AppInput
           label="Введите желаемую сумму"
           labelTextStyle={{fontSize: 12}}
@@ -125,6 +118,29 @@ export const Main = ({}: MainPropsType) => {
             <Text style={{fontWeight: 'bold'}}>{mainData.range}</Text>
           </View>
         </View>
+        <View style={styles.creditType}>
+          <Text
+            style={!differentiated ? {backgroundColor: colors.primary} : null}>
+            Аннуитетный
+          </Text>
+
+          <Switch value={differentiated} onValueChange={toggleSwitch} />
+          <Text
+            style={
+              differentiated
+                ? {backgroundColor: colors.primary, marginLeft: 7}
+                : {marginLeft: 7}
+            }>
+            Дифференцированный
+          </Text>
+        </View>
+        {/*<View style={styles.months}>*/}
+        {/*  {paymentsArray.map((el, index) => (*/}
+        {/*    <View key={index} style={styles.monthsElement}>*/}
+        {/*      <Text style={styles.monthsText}>{el}</Text>*/}
+        {/*    </View>*/}
+        {/*  ))}*/}
+        {/*</View>*/}
       </View>
     </Screen>
   );
@@ -137,5 +153,25 @@ const styles = StyleSheet.create({
     height: 50,
     alignItems: 'center',
     justifyContent: 'flex-start',
+  },
+  months: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  monthsElement: {
+    width: '17.5%',
+    alignItems: 'center',
+    borderColor: colors.grey,
+    borderWidth: 1,
+    borderRadius: 10,
+    marginHorizontal: 4,
+  },
+  monthsText: {
+    fontSize: 12,
+  },
+  creditType: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

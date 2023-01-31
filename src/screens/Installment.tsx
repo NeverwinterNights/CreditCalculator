@@ -63,23 +63,27 @@ export const Installment = ({}: InstallmentPropsType) => {
     setMonthlyIncome(value);
   };
   const payment = useCallback(
-    (bankAccount: number, callback: Function) => {
+    (bankAccount: number, income: number, callback: Function) => {
       if (bankAccount) {
-        if (bankAccount >= Math.ceil(monthsPayment)) {
-          callback(bankAccount - Math.ceil(monthsPayment));
+        if (bankAccount + income >= Math.ceil(monthsPayment)) {
+          callback(bankAccount + income - Math.ceil(monthsPayment));
           return 0;
-        } else if (bankAccount < Math.ceil(monthsPayment) && bankAccount > 0) {
+        } else if (
+          bankAccount + income < Math.ceil(monthsPayment) &&
+          bankAccount + income > 0
+        ) {
           callback(0);
-          return Math.ceil(monthsPayment) - bankAccount;
+          return Math.ceil(monthsPayment) - bankAccount - income;
         }
       }
-      return Math.ceil(monthsPayment);
+      return Math.ceil(monthsPayment - income);
     },
     [monthsPayment],
   );
 
   const result = useMemo(() => {
     let bankAccount = data.bankAccount;
+    let income = data.monthlyIncome;
 
     const minusBankMoney = (value: number) => {
       bankAccount = value;
@@ -90,13 +94,16 @@ export const Installment = ({}: InstallmentPropsType) => {
         <ScheduleItem
           key={item}
           date={item}
-          sum={payment(bankAccount, minusBankMoney)}
+          sum={payment(bankAccount, income, minusBankMoney)}
         />
       );
     });
-  }, [data.bankAccount, payment, schedule]);
+  }, [data.bankAccount, payment, schedule, data.monthlyIncome]);
   return (
     <ScrollView style={styles.container}>
+      <View style={styles.title}>
+        <Text style={styles.titleText}>Расчет рассрочки</Text>
+      </View>
       <View>
         <AppInput
           label="Введите желаемую сумму"
@@ -193,6 +200,15 @@ const styles = StyleSheet.create({
   buttons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  title: {
+    alignItems: 'center',
+    marginBottom: 15,
+    fontSize: 20,
+  },
+  titleText: {
+    fontWeight: 'bold',
+    fontSize: 20,
   },
   button: {
     width: 110,

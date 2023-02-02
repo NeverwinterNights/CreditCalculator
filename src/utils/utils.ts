@@ -29,5 +29,5 @@ export const addDigits = (sum: number) => {
 };
 
 export const removeDigits = (sum: string) => {
-  return +sum.replace(/[^\-0-9]/g, '');
+  return +sum?.replace(/[^\-0-9]/g, '');
 };

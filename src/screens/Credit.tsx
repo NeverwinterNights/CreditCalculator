@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
-import {StyleSheet, Switch, Text, View} from 'react-native';
-import {Screen} from '../components/Screen';
+import React, {useCallback, useMemo, useState} from 'react';
+import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import {CustomButton} from '../components/CustomButton';
 import {AppInput} from '../components/AppTextInput';
 // import {countMonths, monthsPayment} from '../utils/utils';
 import colors from '../config/colors';
+import {getSchedule, removeDigits} from '../utils/utils';
+import {ScheduleItem} from '../components/ScheduleItem';
 // import {getSchedule} from '../utils/utils';
 
 type dataMain = {
@@ -12,21 +13,39 @@ type dataMain = {
   rate: string;
   range: string;
 };
+type TypeCreditType = 'Аннуитетный' | 'Дифференцированный';
 
-type MainPropsType = {};
-export const Main = ({}: MainPropsType) => {
+export const Credit = () => {
   const [mainData, setMainData] = useState<dataMain>({} as dataMain);
   const [inputData, setInputData] = useState<dataMain>({} as dataMain);
-  const [differentiated, setDifferentiated] = useState(false);
+  const [creditType, setCreditType] = useState<TypeCreditType>('Аннуитетный');
+  const [schedule, setSchedule] = useState<string[]>([]);
+  const [monthsPayment, setMonthsPayment] = useState(0);
+
+  const annuitySum = () => {
+    const rateMounts = removeDigits(inputData.rate) / (100 * 12);
+    return Math.ceil(
+      removeDigits(inputData.amount) *
+        (rateMounts / (1 - (1 + rateMounts) ** -(+inputData.range * 12))),
+    );
+  };
 
   const dataInputsChandler = () => {
     setMainData(inputData);
-    setInputData({} as dataMain);
+    // setInputData({} as dataMain);
+    setSchedule(getSchedule(+inputData.range * 12));
+    setMonthsPayment(
+      Math.ceil(removeDigits(inputData.amount) / (+inputData.range * 12)),
+    );
   };
 
   const resetButtonChandler = () => {
     setInputData({} as dataMain);
     setMainData({} as dataMain);
+    setSchedule([]);
+  };
+  const creditTypeHandler = (value: TypeCreditType) => {
+    setCreditType(value);
   };
 
   const inputStateHandler = (key: keyof typeof mainData, value: string) => {
@@ -35,15 +54,43 @@ export const Main = ({}: MainPropsType) => {
       [key]: value,
     });
   };
-  const toggleSwitch = () => setDifferentiated(previousState => !previousState);
 
-  // const paymentsArray = new Array(countMonths(+mainData.range)).fill(
-  //   monthsPayment(mainData.amount, countMonths(+mainData.range)),
-  // );
+  const payment = useCallback(
+    (creditSum: number, callback: Function) => {
+      callback(+removeDigits(inputData.amount) / (+inputData.range * 12));
+
+      return Math.ceil(
+        monthsPayment +
+          ((creditSum * (+removeDigits(inputData.rate) / 100)) / 365) * 30.5,
+      );
+    },
+    [inputData.amount, inputData.range, inputData.rate, monthsPayment],
+  );
+
+  const resultDif = useMemo(() => {
+    let creditSum = +removeDigits(inputData.amount);
+    const minusCreditSum = (value: number) => {
+      creditSum = creditSum - value;
+      // creditSum - (+removeDigits(inputData.amount) / +inputData.range) * 12;
+    };
+
+    return schedule.map(item => {
+      return (
+        <ScheduleItem
+          key={item}
+          date={item}
+          sum={payment(creditSum, minusCreditSum)}
+        />
+      );
+    });
+  }, [inputData.amount, payment, schedule]);
 
   return (
-    <Screen>
-      <View style={{marginHorizontal: 13}}>
+    <ScrollView>
+      <View style={{marginHorizontal: 13, marginVertical: 20}}>
+        <View style={styles.title}>
+          <Text style={styles.titleText}>Расчет рассрочки</Text>
+        </View>
         <AppInput
           label="Введите желаемую сумму"
           labelTextStyle={{fontSize: 12}}
@@ -119,30 +166,36 @@ export const Main = ({}: MainPropsType) => {
           </View>
         </View>
         <View style={styles.creditType}>
-          <Text
-            style={!differentiated ? {backgroundColor: colors.primary} : null}>
-            Аннуитетный
-          </Text>
-
-          <Switch value={differentiated} onValueChange={toggleSwitch} />
-          <Text
-            style={
-              differentiated
-                ? {backgroundColor: colors.primary, marginLeft: 7}
-                : {marginLeft: 7}
-            }>
-            Дифференцированный
-          </Text>
+          <CustomButton
+            color={creditType === 'Аннуитетный' ? 'primary' : 'grey'}
+            onPress={() => creditTypeHandler('Аннуитетный')}
+            style={{width: '47%', paddingHorizontal: 20}}
+            labelStyle={{
+              fontSize: 10,
+              color: creditType === 'Аннуитетный' ? 'white' : 'black',
+            }}
+            children={'Аннуитетный'}
+          />
+          <CustomButton
+            color={creditType === 'Дифференцированный' ? 'primary' : 'grey'}
+            onPress={() => creditTypeHandler('Дифференцированный')}
+            style={{width: '47%', paddingHorizontal: 20}}
+            labelStyle={{
+              fontSize: 10,
+              color: creditType === 'Дифференцированный' ? 'white' : 'black',
+            }}
+            children={'Дифференцированный'}
+          />
         </View>
-        {/*<View style={styles.months}>*/}
-        {/*  {paymentsArray.map((el, index) => (*/}
-        {/*    <View key={index} style={styles.monthsElement}>*/}
-        {/*      <Text style={styles.monthsText}>{el}</Text>*/}
-        {/*    </View>*/}
-        {/*  ))}*/}
-        {/*</View>*/}
+        <View>
+          {creditType === 'Аннуитетный'
+            ? schedule.map(item => (
+                <ScheduleItem key={item} date={item} sum={annuitySum()} />
+              ))
+            : resultDif}
+        </View>
       </View>
-    </Screen>
+    </ScrollView>
   );
 };
 
@@ -153,6 +206,15 @@ const styles = StyleSheet.create({
     height: 50,
     alignItems: 'center',
     justifyContent: 'flex-start',
+  },
+  title: {
+    alignItems: 'center',
+    marginBottom: 15,
+    fontSize: 20,
+  },
+  titleText: {
+    fontWeight: 'bold',
+    fontSize: 20,
   },
   months: {
     flexDirection: 'row',
@@ -171,7 +233,7 @@ const styles = StyleSheet.create({
   },
   creditType: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
 });

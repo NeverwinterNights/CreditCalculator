@@ -4,25 +4,11 @@ import {AppInput} from './AppTextInput';
 
 type InputItemPropsType = {
   title: string;
-  // buttonTitle: string;
   numericItem?: boolean;
-  // buttonOnPress: (text: string) => void;
-  // onButtonClickCallBack: (value: number) => void;
 };
 
-export const InputItem = ({
-  title,
-
-  numericItem,
-}: // buttonTitle,
-// buttonOnPress,
-InputItemPropsType) => {
+export const InputItem = ({title, numericItem}: InputItemPropsType) => {
   const [itemValue, setItemValue] = useState('');
-
-  // const buttonClickHandler = () => {
-  //   buttonOnPress(itemValue);
-  //   setItemValue('');
-  // };
 
   return (
     <View style={styles.input}>
@@ -34,12 +20,6 @@ InputItemPropsType) => {
           numeric={numericItem ? numericItem : false}
         />
       </View>
-      {/*<CustomButton*/}
-      {/*  labelStyle={{fontSize: 12}}*/}
-      {/*  style={styles.customButton}*/}
-      {/*  children={buttonTitle}*/}
-      {/*  onPress={buttonClickHandler}*/}
-      {/*/>*/}
     </View>
   );
 };

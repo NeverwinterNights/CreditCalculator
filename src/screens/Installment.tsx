@@ -3,7 +3,7 @@ import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import {AppInput} from '../components/AppTextInput';
 import {CustomButton} from '../components/CustomButton';
 import colors from '../config/colors';
-import {getSchedule, removeDigits} from '../utils/utils';
+import {addDigits, getSchedule, removeDigits} from '../utils/utils';
 import {ScheduleItem} from '../components/ScheduleItem';
 
 type InstallmentPropsType = {};
@@ -17,6 +17,7 @@ type dataInstallment = {
 };
 
 type RangeType = 1 | 2 | 3;
+
 export const Installment = ({}: InstallmentPropsType) => {
   const [sum, setSum] = useState('');
   const [range, setRange] = useState<RangeType>(1);
@@ -170,11 +171,42 @@ export const Installment = ({}: InstallmentPropsType) => {
         />
       </View>
       <View>
-        <Text>Общая сумма {data.sum}</Text>
-        <Text>Срок рассрочки {data.range ? data.range * 12 : ''} месяцев</Text>
-        <Text>Имеющаяся сумма{data.additionalSum}</Text>
-        <Text>Месячный доход{data.monthlyIncome}</Text>
-        {/*<Text>Сумма на счету в банке{data.bankAccount}</Text>*/}
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginVertical: 5,
+          }}>
+          <Text>Общая сумма</Text>
+          <Text>{addDigits(data.sum)} евро</Text>
+        </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginVertical: 5,
+          }}>
+          <Text>Срок рассрочки</Text>
+          <Text>{data.range ? data.range * 12 : ''} месяцев</Text>
+        </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginVertical: 5,
+          }}>
+          <Text>Имеющаяся сумма</Text>
+          <Text>{addDigits(data.additionalSum)}</Text>
+        </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginVertical: 5,
+          }}>
+          <Text>Месячный доход</Text>
+          <Text>{addDigits(data.monthlyIncome)}</Text>
+        </View>
       </View>
       <CustomButton
         children={'Рассчитать'}

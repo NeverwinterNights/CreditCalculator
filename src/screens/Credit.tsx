@@ -12,6 +12,7 @@ type dataMain = {
   amount: string;
   rate: string;
   range: string;
+  income: string;
 };
 type TypeCreditType = 'Аннуитетный' | 'Дифференцированный';
 
@@ -20,23 +21,52 @@ export const Credit = () => {
   const [inputData, setInputData] = useState<dataMain>({} as dataMain);
   const [creditType, setCreditType] = useState<TypeCreditType>('Аннуитетный');
   const [schedule, setSchedule] = useState<string[]>([]);
-  const [monthsPayment, setMonthsPayment] = useState(0);
+  // const [monthsPayment, setMonthsPayment] = useState(0);
 
-  const annuitySum = () => {
-    const rateMounts = removeDigits(inputData.rate) / (100 * 12);
-    return Math.ceil(
-      removeDigits(inputData.amount) *
-        (rateMounts / (1 - (1 + rateMounts) ** -(+inputData.range * 12))),
-    );
-  };
+  // const annuitySum = () => {
+  //   const rateMounts = removeDigits(inputData.rate) / (100 * 12);
+  //   const creditSum = removeDigits(inputData.amount);
+  //   return Math.ceil(
+  //     creditSum *
+  //       (rateMounts / (1 - (1 + rateMounts) ** -(+inputData.range * 12))),
+  //   );
+  // };
+
+  const paymentAnnuitySum = useCallback(
+    (creditSum: number, callback: Function) => {
+      const rateMounts = removeDigits(mainData.rate) / (100 * 12);
+      const income = removeDigits(mainData.income);
+      const mountsPayments = Math.ceil(
+        creditSum *
+          (rateMounts / (1 - (1 + rateMounts) ** -(+mainData.range * 12))),
+      );
+      callback(income - mountsPayments);
+      return mountsPayments > 0 ? mountsPayments : 0;
+    },
+    [mainData.income, mainData.range, mainData.rate],
+  );
+
+  const resultAnnuityDif = useMemo(() => {
+    let creditSum = +removeDigits(mainData.amount);
+    const minusCreditSum = (value: number) => {
+      if (removeDigits(mainData.income)) {
+        creditSum = creditSum - value;
+      }
+    };
+
+    return schedule.map(item => {
+      const sum = paymentAnnuitySum(creditSum, minusCreditSum);
+      if (sum !== 0) {
+        return <ScheduleItem key={item} date={item} sum={sum} />;
+      }
+    });
+  }, [mainData.amount, mainData.income, paymentAnnuitySum, schedule]);
 
   const dataInputsChandler = () => {
-    setMainData(inputData);
-    // setInputData({} as dataMain);
-    setSchedule(getSchedule(+inputData.range * 12));
-    setMonthsPayment(
-      Math.ceil(removeDigits(inputData.amount) / (+inputData.range * 12)),
-    );
+    if (inputData.amount && inputData.rate && inputData.range) {
+      setMainData(inputData);
+      setSchedule(getSchedule(+inputData.range * 12));
+    }
   };
 
   const resetButtonChandler = () => {
@@ -58,38 +88,37 @@ export const Credit = () => {
   const payment = useCallback(
     (creditSum: number, callback: Function) => {
       callback(+removeDigits(inputData.amount) / (+inputData.range * 12));
+      const monthPayment = Math.ceil(creditSum / (+inputData.range * 12));
 
       return Math.ceil(
-        monthsPayment +
+        monthPayment +
           ((creditSum * (+removeDigits(inputData.rate) / 100)) / 365) * 30.5,
       );
     },
-    [inputData.amount, inputData.range, inputData.rate, monthsPayment],
+    [inputData.amount, inputData.range, inputData.rate],
   );
-
   const resultDif = useMemo(() => {
     let creditSum = +removeDigits(inputData.amount);
     const minusCreditSum = (value: number) => {
+      if (inputData.income) {
+        creditSum = creditSum - (+removeDigits(inputData.income) - value);
+      }
       creditSum = creditSum - value;
-      // creditSum - (+removeDigits(inputData.amount) / +inputData.range) * 12;
     };
 
     return schedule.map(item => {
-      return (
-        <ScheduleItem
-          key={item}
-          date={item}
-          sum={payment(creditSum, minusCreditSum)}
-        />
-      );
+      const sum = payment(creditSum, minusCreditSum);
+      if (sum > 0) {
+        return <ScheduleItem key={item} date={item} sum={sum} />;
+      }
     });
-  }, [inputData.amount, payment, schedule]);
+  }, [inputData.amount, inputData.income, payment, schedule]);
 
   return (
     <ScrollView>
       <View style={{marginHorizontal: 13, marginVertical: 20}}>
         <View style={styles.title}>
-          <Text style={styles.titleText}>Расчет рассрочки</Text>
+          <Text style={styles.titleText}>Расчет кредита</Text>
         </View>
         <AppInput
           label="Введите желаемую сумму"
@@ -121,7 +150,16 @@ export const Credit = () => {
           setText={value => inputStateHandler('range', value)}
           style={{textAlign: 'center'}}
         />
-
+        <AppInput
+          label="Введите месячный доход"
+          labelTextStyle={{fontSize: 12}}
+          labelStyle={{width: 80}}
+          width={'80%'}
+          numeric
+          text={inputData.income}
+          setText={value => inputStateHandler('income', value)}
+          style={{textAlign: 'center'}}
+        />
         <View
           style={{
             alignItems: 'center',
@@ -188,11 +226,7 @@ export const Credit = () => {
           />
         </View>
         <View>
-          {creditType === 'Аннуитетный'
-            ? schedule.map(item => (
-                <ScheduleItem key={item} date={item} sum={annuitySum()} />
-              ))
-            : resultDif}
+          {creditType === 'Аннуитетный' ? resultAnnuityDif : resultDif}
         </View>
       </View>
     </ScrollView>
